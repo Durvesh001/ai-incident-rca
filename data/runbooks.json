@@ -1,0 +1,292 @@
+[
+  {
+    "id": "RB-001",
+    "alert": "High5xxErrorRate",
+    "service": "api-gateway",
+    "severity": "P1",
+    "description": "Triggered when HTTP 5xx responses exceed the normal threshold for a service.",
+    "diagnosis_steps": [
+      "Check if the error spike started after a recent deployment.",
+      "Inspect application logs for repeated exceptions or dependency failures.",
+      "Check upstream and downstream service health.",
+      "Review latency, CPU, memory, and pod restart metrics.",
+      "Verify whether the issue affects all users or a specific endpoint."
+    ],
+    "remediation_steps": [
+      "Rollback the latest deployment if errors started immediately after release.",
+      "Restart unhealthy pods if they are stuck or failing readiness checks.",
+      "Scale replicas if the service is saturated.",
+      "Fail over to a healthy dependency if available.",
+      "Open an incident bridge if customer-facing impact is confirmed."
+    ],
+    "evidence_to_collect": [
+      "5xx error rate graph",
+      "Recent deployment timestamp",
+      "Top failing endpoints",
+      "Application exception logs",
+      "Dependency health status"
+    ],
+    "tags": ["5xx", "api", "deployment", "dependency", "http"]
+  },
+  {
+    "id": "RB-002",
+    "alert": "HighPaymentTimeoutRate",
+    "service": "payment-service",
+    "severity": "P1",
+    "description": "Triggered when payment requests time out or exceed latency thresholds.",
+    "diagnosis_steps": [
+      "Check payment-service latency percentiles and timeout count.",
+      "Inspect logs for provider timeout, DB timeout, or connection pool errors.",
+      "Verify external payment provider status.",
+      "Check database connection pool utilization.",
+      "Compare timeout start time with recent deployments or traffic spikes."
+    ],
+    "remediation_steps": [
+      "Restart saturated payment-service pods if connection pools are stuck.",
+      "Temporarily increase timeout only if provider latency is confirmed and business accepts delay.",
+      "Scale payment-service replicas during high traffic.",
+      "Fail over to backup payment provider if supported.",
+      "Disable duplicate retry paths until idempotency is verified."
+    ],
+    "evidence_to_collect": [
+      "Payment timeout logs",
+      "External provider status page",
+      "DB connection pool metrics",
+      "Payment failure percentage",
+      "Recent deployment details"
+    ],
+    "tags": ["payment", "timeout", "latency", "database", "third-party"]
+  },
+  {
+    "id": "RB-003",
+    "alert": "PodRestartRateHigh",
+    "service": "kubernetes-workload",
+    "severity": "P2",
+    "description": "Triggered when one or more pods restart frequently within a short time window.",
+    "diagnosis_steps": [
+      "Run kubectl get pods and identify pods with high restart counts.",
+      "Describe affected pods and check termination reason.",
+      "Check previous container logs using kubectl logs --previous.",
+      "Review memory, CPU, liveness probe, and readiness probe metrics.",
+      "Check whether restarts began after a deployment or config change."
+    ],
+    "remediation_steps": [
+      "Rollback the deployment if restarts started after a release.",
+      "Increase memory or CPU limits if resource exhaustion is confirmed.",
+      "Fix failing health probes if probe configuration is incorrect.",
+      "Restore previous ConfigMap or Secret if config parsing fails.",
+      "Create a bug ticket if application crash is reproducible."
+    ],
+    "evidence_to_collect": [
+      "Pod restart count",
+      "Termination reason",
+      "Previous container logs",
+      "Deployment version",
+      "Resource usage graph"
+    ],
+    "tags": ["kubernetes", "pod", "restart", "oom", "crashloop"]
+  },
+  {
+    "id": "RB-004",
+    "alert": "DatabaseQueryLatencyHigh",
+    "service": "database",
+    "severity": "P2",
+    "description": "Triggered when database query latency exceeds the accepted threshold.",
+    "diagnosis_steps": [
+      "Identify top slow queries from database monitoring.",
+      "Check whether the slow query affects a specific table or endpoint.",
+      "Review query execution plan for full table scans.",
+      "Check DB CPU, memory, locks, and connection count.",
+      "Compare latency spike with batch jobs, deployments, or traffic changes."
+    ],
+    "remediation_steps": [
+      "Add or restore missing indexes if full table scans are confirmed.",
+      "Kill long-running blocking queries if they are safe to terminate.",
+      "Scale read replicas if read traffic is high.",
+      "Temporarily disable expensive non-critical queries.",
+      "Add query regression tests for the affected endpoint."
+    ],
+    "evidence_to_collect": [
+      "Slow query logs",
+      "Query execution plan",
+      "DB CPU and memory graphs",
+      "Lock wait metrics",
+      "Affected API endpoints"
+    ],
+    "tags": ["database", "slow-query", "index", "latency", "api"]
+  },
+  {
+    "id": "RB-005",
+    "alert": "QueueDepthHigh",
+    "service": "worker-service",
+    "severity": "P2",
+    "description": "Triggered when queue depth or consumer lag increases beyond threshold.",
+    "diagnosis_steps": [
+      "Check current queue depth and consumer lag.",
+      "Verify whether consumers are running and healthy.",
+      "Inspect worker logs for malformed messages or processing errors.",
+      "Check dead-letter queue volume.",
+      "Compare queue growth with traffic spike or downstream dependency slowdown."
+    ],
+    "remediation_steps": [
+      "Restart stuck consumers.",
+      "Scale worker replicas to increase processing throughput.",
+      "Move malformed messages to dead-letter queue.",
+      "Throttle producers if downstream systems are overloaded.",
+      "Add schema validation before messages enter the queue."
+    ],
+    "evidence_to_collect": [
+      "Queue depth graph",
+      "Consumer lag graph",
+      "Worker error logs",
+      "Dead-letter queue count",
+      "Producer publish rate"
+    ],
+    "tags": ["queue", "consumer", "worker", "backlog", "kafka"]
+  },
+  {
+    "id": "RB-006",
+    "alert": "CacheUnavailable",
+    "service": "redis-cache",
+    "severity": "P2",
+    "description": "Triggered when cache service is unreachable or returning errors.",
+    "diagnosis_steps": [
+      "Check cache instance health and connection count.",
+      "Inspect application logs for Redis connection errors.",
+      "Verify cache memory usage and eviction rate.",
+      "Check whether cache failures are causing hard application failures.",
+      "Review recent infrastructure or network changes."
+    ],
+    "remediation_steps": [
+      "Fail over to cache replica if available.",
+      "Restart cache instance if it is unhealthy.",
+      "Flush only affected keys if stale data is causing incorrect behavior.",
+      "Enable graceful fallback in application if cache is non-critical.",
+      "Add circuit breaker or timeout around cache calls."
+    ],
+    "evidence_to_collect": [
+      "Redis connection errors",
+      "Cache memory usage",
+      "Eviction rate",
+      "Affected services",
+      "Failover status"
+    ],
+    "tags": ["redis", "cache", "connection", "stale-data", "failover"]
+  },
+  {
+    "id": "RB-007",
+    "alert": "CertificateExpiryOrTLSFailure",
+    "service": "tls-enabled-service",
+    "severity": "P1",
+    "description": "Triggered when TLS handshake errors increase or a certificate is expired/near expiry.",
+    "diagnosis_steps": [
+      "Inspect logs for TLS handshake failure or certificate expired errors.",
+      "Check certificate expiry date for affected client or server certificate.",
+      "Verify whether the issue affects internal or external communication.",
+      "Check recent certificate rotation activity.",
+      "Confirm whether all pods loaded the new certificate."
+    ],
+    "remediation_steps": [
+      "Rotate expired certificate immediately.",
+      "Restart affected pods so they reload new certificate material.",
+      "Rollback certificate change if trust chain is invalid.",
+      "Update trusted CA bundle where required.",
+      "Add certificate expiry alert at 30, 14, and 7 days before expiration."
+    ],
+    "evidence_to_collect": [
+      "TLS error logs",
+      "Certificate expiry date",
+      "Affected endpoint",
+      "Rotation timestamp",
+      "Trust chain validation result"
+    ],
+    "tags": ["tls", "certificate", "expiry", "security", "payment"]
+  },
+  {
+    "id": "RB-008",
+    "alert": "DeploymentErrorRateHigh",
+    "service": "application-service",
+    "severity": "P2",
+    "description": "Triggered when error rate increases shortly after a new deployment.",
+    "diagnosis_steps": [
+      "Identify deployment version and rollout timestamp.",
+      "Compare error rate before and after deployment.",
+      "Check logs for missing environment variables, config errors, or migration failures.",
+      "Verify readiness and liveness probe status.",
+      "Check whether rollback is available and safe."
+    ],
+    "remediation_steps": [
+      "Rollback to the last known good version.",
+      "Apply missing configuration if the issue is config-related.",
+      "Restart pods after configuration correction.",
+      "Pause rollout until validation passes.",
+      "Add deployment prechecks for required environment variables and config files."
+    ],
+    "evidence_to_collect": [
+      "Deployment timestamp",
+      "Current and previous version",
+      "Application error logs",
+      "Config diff",
+      "Readiness/liveness probe events"
+    ],
+    "tags": ["deployment", "rollback", "config", "environment-variable", "release"]
+  },
+  {
+    "id": "RB-009",
+    "alert": "DNSResolutionFailureHigh",
+    "service": "kubernetes-dns",
+    "severity": "P2",
+    "description": "Triggered when internal service DNS lookups fail frequently.",
+    "diagnosis_steps": [
+      "Check application logs for no such host or DNS timeout errors.",
+      "Verify CoreDNS pod health and restart count.",
+      "Check CoreDNS CPU, memory, and request rate.",
+      "Test DNS resolution from an affected pod.",
+      "Review recent cluster networking or service changes."
+    ],
+    "remediation_steps": [
+      "Scale CoreDNS replicas if CPU or request rate is high.",
+      "Restart unhealthy CoreDNS pods.",
+      "Check network policies blocking DNS traffic.",
+      "Reduce excessive DNS lookups using client-side caching.",
+      "Add alerting for CoreDNS saturation and DNS error rate."
+    ],
+    "evidence_to_collect": [
+      "DNS failure logs",
+      "CoreDNS pod metrics",
+      "DNS test result from affected pod",
+      "Network policy changes",
+      "Affected service names"
+    ],
+    "tags": ["dns", "kubernetes", "coredns", "service-discovery", "network"]
+  },
+  {
+    "id": "RB-010",
+    "alert": "TraceIngestionDropped",
+    "service": "otel-collector",
+    "severity": "P3",
+    "description": "Triggered when observability pipeline drops logs, metrics, or traces.",
+    "diagnosis_steps": [
+      "Check OpenTelemetry collector logs for dropped spans or exporter queue errors.",
+      "Review collector CPU, memory, and queue utilization.",
+      "Verify backend observability platform availability.",
+      "Check whether a high-volume service started sending excessive telemetry.",
+      "Confirm exporter timeout and retry settings."
+    ],
+    "remediation_steps": [
+      "Increase collector memory and CPU limits.",
+      "Tune exporter queue size and batch processor settings.",
+      "Enable sampling for high-volume traces.",
+      "Scale collector replicas.",
+      "Add alerting for telemetry drop rate and exporter queue saturation."
+    ],
+    "evidence_to_collect": [
+      "Collector error logs",
+      "Dropped span count",
+      "Exporter queue size",
+      "Collector resource usage",
+      "Telemetry volume by service"
+    ],
+    "tags": ["observability", "opentelemetry", "tracing", "collector", "telemetry"]
+  }
+]
