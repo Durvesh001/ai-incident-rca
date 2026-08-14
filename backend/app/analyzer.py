@@ -1,5 +1,6 @@
 import re
 from app.data_loader import load_incidents, load_runbooks
+from app.llm import generate_ai_rca
 from app.search import find_similar_incidents, find_relevant_runbooks
 
 def extract_field(alert_text):
@@ -84,7 +85,14 @@ def analyze_incident(alert_text):
     matched_incidents = find_similar_incidents(alert_text, incidents, extracted)
     matched_runbooks = find_relevant_runbooks(alert_text, runbooks, extracted)
     
-    rca = generate_rca(extracted, matched_incidents, matched_runbooks)
+    fallback_rca = generate_rca(extracted, matched_incidents, matched_runbooks)
+    rca = generate_ai_rca(
+        alert_text,
+        extracted,
+        matched_incidents,
+        matched_runbooks,
+        fallback_rca,
+    )
     
     return {
         "extracted_fields": extracted,
