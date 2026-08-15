@@ -1,27 +1,28 @@
 # AI Incident RCA Assistant
 
-This project uses local Ollama for AI-written RCAs. No API key, cloud account, or paid service is required.
+The app uses Gemini to write an RCA narrative from incidents and runbooks selected by the backend. It retains deterministic evidence and confidence scoring, and falls back to the rule-based RCA if Gemini is unavailable.
 
-## Run on another laptop
+## Setup
 
-1. Install [Ollama](https://ollama.com/download) and download the model:
+1. Create a Gemini API key in [Google AI Studio](https://aistudio.google.com/app/apikey).
 
-   ```powershell
-   ollama run llama3.2
-   ```
-
-   After the model responds once, press `Ctrl+C`. Ollama continues serving its local API at `http://localhost:11434`.
-
-2. Start the backend:
+2. Configure it locally. Do not commit the resulting `backend/.env` file.
 
    ```powershell
    cd backend
+   Copy-Item .env.example .env
+   notepad .env
+   ```
+
+3. Set `GEMINI_API_KEY` in `backend/.env`, then install and start the backend:
+
+   ```powershell
    py -m venv ../.venv
    ../.venv/Scripts/pip.exe install -r requirements.txt
    ../.venv/Scripts/uvicorn.exe app.main:app --reload
    ```
 
-3. In a second terminal, start the frontend:
+4. In a second terminal, start the frontend:
 
    ```powershell
    cd frontend
@@ -29,15 +30,10 @@ This project uses local Ollama for AI-written RCAs. No API key, cloud account, o
    npm run dev
    ```
 
-4. Open `http://localhost:3000` and submit an incident.
+Open `http://localhost:3000` and submit an incident.
 
-The backend first selects relevant incidents and runbooks, then sends only those selected records to the local model. If Ollama is stopped or returns an invalid response, the existing rule-based RCA is returned instead.
+## Configuration
 
-## Optional configuration
+The default model is `gemini-3.5-flash`. To choose another eligible model, set `GEMINI_MODEL` in `backend/.env`.
 
-The default model is `llama3.2` at `http://localhost:11434`. Override either setting before starting the backend:
-
-```powershell
-$env:OLLAMA_MODEL = "your-local-model"
-$env:OLLAMA_BASE_URL = "http://localhost:11434"
-```
+The Gemini free tier has model-specific rate limits. Do not send real production secrets or customer data on the free tier.
