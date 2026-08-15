@@ -12,3 +12,6 @@ frontend/out/
 # Editor / OS
 .vscode/
 .DS_Store
+
+# API Keys
+backend/.env
